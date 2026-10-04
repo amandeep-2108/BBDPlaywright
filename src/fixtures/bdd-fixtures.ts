@@ -1,0 +1,17 @@
+import { test as base } from "playwright-bdd";
+import { HomePage } from "../pages/homePage";
+import { LoginPage } from "../pages/loginPage";
+
+type ContextFixtures = {
+  homePage: HomePage;
+  loginPage: LoginPage;
+};
+
+export const test = base.extend<ContextFixtures>({
+  homePage: async ({ page }, use) => {
+    await use(new HomePage(page));
+  },
+  loginPage: async ({ page }, use) => {
+    await use(new LoginPage(page));
+  },
+});
