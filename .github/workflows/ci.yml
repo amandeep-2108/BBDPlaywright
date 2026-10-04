@@ -1,72 +1,52 @@
-git add .github/workflows/ci.yml  name: BDDPlaywright CI
+name: BDDPlaywright CI
+
 on:
-push:
-branches: [main]
-pull_request:
-branches: [main]
-workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
 jobs:
-test:
-name: Run BDD Tests
-runs-on: ubuntu-latest
-timeout-minutes: 30
-steps:
-- name: Checkout source code
-uses: actions/checkout@v6
-- name: Setup Node.js
-uses: actions/setup-node@v6
-with:
-node-version: '22'
-cache: npm
-- name: Install dependencies
+  test:
+    name: Run BDD Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
 
-The step is important for your framework because you are using
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
 
-. Keep it if that is how your project generates its tests.
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
 
-What each section does
-YAML section Explanation for mentees
-Name displayed on the Actions page
-Run automatically when code is pushed to
-Run when a pull request targets
-Allow a manual run from the GitHub UI
-Defines the work GitHub Actions needs to perform
-Selects the machine environment
-The individual tasks executed in sequence
-Downloads the repository code to the runner
-Configures the Node.js version
-Installs the dependencies recorded in
+      - name: Install dependencies
+        run: npm ci
 
-Generate BDD tests
-playwright-bdd
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
 
-name
-on.push main
-on.pull_request main
-workflow_dispatch
-jobs
-runs-on
-steps
-actions/checkout
-actions/setup-node
-npm ci package-lock.json
+      # "npm test" runs "pretest" (npx bddgen) first, then "ENV=dev npx playwright test"
+      - name: Run BDD tests
+        run: npm test
 
-run: npm ci
-- name: Install Playwright browsers
-run: npx playwright install --with-deps
-- name: Generate BDD tests
-run: npx bddgen
-- name: Run BDD tests
-run: npm test
-- name: Upload test results
-if: always()
-uses: actions/upload-artifact@v5
-with:
-name: bdd-test-results
-path: |
-allure-results/
-allure-report/
-test-results/
-reports/
-if-no-files-found: ignore
-retention-days: 14
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results
+          path: allure-results/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
